@@ -2,20 +2,35 @@ import './App.css';
 import SearchBar from './components/searchBar';
 import CurrentWeather from './components/currentWeather';
 import Forecast from './components/forecast';
-import UseWeather from './hooks/useWeather';
+import useWeather from './hooks/useWeather';
 import { useState } from 'react';
+import MapView from './components/mapView';
+import { getCityNameByCoords } from './services/weatherAPI';
 
 function App() {
   const [city, setCity] = useState('');
-  const { weatherData, forecastData, loading, error } = UseWeather(city);
+  const { weatherData, forecastData, loading, error } = useWeather(city);
+  const [currentCity, setCurrentCity] = useState(null);
 
   const handleSearch = (cityName) => {
     setCity(cityName);
   };
 
+  const handleLocationSelect = async (lat, lon) => {
+    setCurrentCity({ coord: { lat, lon } });
+    try {
+      const cityName = await getCityNameByCoords(lat, lon);
+      if (cityName) {
+        setCity(cityName);
+      }
+    } catch (error) {
+      console.error('Error fetching city name:', error);
+    }
+  };
+    
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
-      
       {/* Header */}
       <header className="text-center py-8 px-4 border-b border-gray-800">
         <h1 className="text-3xl font-bold tracking-tight">
@@ -25,6 +40,13 @@ function App() {
           Real-time weather information at your fingertips.
         </p>
       </header>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <MapView 
+          onLocationSelect={handleLocationSelect} 
+          currentCity={currentCity}
+        />
+      </div>
 
       {/* Main */}
       <main className="max-w-6xl mx-auto px-4 py-8">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getCurrentWeatherAPI, getForecast } from '../services/weatherAPI';
 
-function UseWeather(city) {
+function useWeather(city) {
 
     const [weatherData, setWeatherData] = useState(null);
     const [forecastData, setForecastData] = useState(null);
@@ -36,4 +36,4 @@ function UseWeather(city) {
 
     return { weatherData, forecastData, loading, error };
 }
-export default UseWeather;
+export default useWeather;
