@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getCurrentWeatherAPI, getForecast } from '../services/weatherAPI';
+import { Toast } from 'bootstrap';
 
 function useWeather(city) {
 
@@ -25,6 +26,7 @@ function useWeather(city) {
                 setForecastData(forecast);
             } catch (err) {
                 setError(err.message);
+                Toast.getOrCreateInstance(document.getElementById('error-toast')).show();
             }
             finally{
                 setLoading(false);

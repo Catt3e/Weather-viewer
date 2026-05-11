@@ -1,3 +1,5 @@
+import toast from "react-hot-toast";
+
 const API_KEY = process.env.REACT_APP_OPENWEATHERMAP_API_KEY;
 const BASE_URL = "https://api.openweathermap.org/data/2.5/";
 
@@ -11,8 +13,9 @@ async function getCurrentWeatherAPI(city) {
         const data = await response.json();
         return data;
     } catch (error) {
+        toast.error(`Failed to fetch weather data for ${city}. Please check the city name and try again.`);
         console.error("Error fetching current weather data:", error);
-        throw error;
+        return;
     }
 }
 
@@ -26,8 +29,9 @@ async function getCurrentWeatherByCoords(lat, lon) {
         const data = await response.json();
         return data;
     } catch (error) {
+        toast.error("Failed to fetch weather data for the selected location. Please try again.");
         console.error("Error fetching current weather data by coordinates:", error);
-        throw error;
+        return;
     }
 }
 
@@ -42,7 +46,7 @@ async function getForecast(city) {
         return data;
     } catch (error) {
         console.error("Error fetching forecast data:", error);
-        throw error;
+        return;
     }
 }
 
@@ -56,7 +60,7 @@ async function getForecastByCoords(lat, lon) {
         return data;
     } catch (error) {
         console.error("Error fetching forecast data by coordinates:", error);
-        throw error;
+        return;
     }
 }
 
@@ -70,21 +74,27 @@ async function getCitySuggestions(query) {
         return data;
     } catch (error) {
         console.error("Error fetching city suggestions:", error);
-        throw error;
+        return;
     }
 }
 
 async function getCityNameByCoords(lat, lon) {
-    const url = `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${API_KEY}`;
+    const url = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${API_KEY}`;
     try {
         const response = await fetch(url);
-        if (!response.ok)
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        if (!response.ok) {
+            throw new Error(
+                `Error ${response.status}: ${response.statusText}`
+            );
+        }
         const data = await response.json();
-        return data[0]?.name || "Unknown Location";
+        if (!Array.isArray(data) || data.length === 0) {
+            return "Unknown Location";
+        }
+        return data[0].name ?? "Unknown Location";
     } catch (error) {
         console.error("Error fetching city name by coordinates:", error);
-        throw error;
+        return "Unknown Location";
     }
 }
 

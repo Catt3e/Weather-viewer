@@ -32,7 +32,13 @@ function CurrentWeather({ weatherData }) {
                 w-full
             ">
                 {/* City */}
-                <h2 className="text-2xl font-semibold mb-2">{name}</h2>
+                {name && (
+                    <h2 className="text-2xl font-semibold mb-2">{name}</h2>
+                )}
+
+                {!name && (
+                    <h2 className="text-2xl font-semibold mb-2">Unknown Location</h2>
+                )}
 
                 {/* Weather + icon */}
                 <div className="flex items-center justify-between mb-4">

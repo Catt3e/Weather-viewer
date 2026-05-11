@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { getCitySuggestions } from '../services/weatherAPI';
+import { toast } from 'react-hot-toast';
 
 function SearchBar({ onSearch }) {
     const [inputValue, setInputValue] = useState("");
@@ -15,13 +16,14 @@ function SearchBar({ onSearch }) {
     function fetchSuggestions(query) {
         if (query.trim() !== '') {
             if (query.includes(' '))
-                query.replace(' ', '%20')
+                query = query.replace(' ', '%20');
             getCitySuggestions(query)
                 .then(data => {
                     setSuggestions(data);
                 })
                 .catch(error => {
                     console.error('Error fetching city suggestions:', error);
+                    toast.error("Failed to fetch city suggestions.");
                     setSuggestions([]);
                 });
             setShowSuggestions(true);

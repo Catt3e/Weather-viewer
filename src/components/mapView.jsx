@@ -1,6 +1,7 @@
 import { importLibrary } from "@googlemaps/js-api-loader";
 import { initMap } from "../services/mapAPI";
 import { useEffect, useRef, useCallback, useState } from "react";
+import { toast } from "react-hot-toast";
 
 function MapView({onLocationSelect, currentCity}) {
 
@@ -15,49 +16,68 @@ function MapView({onLocationSelect, currentCity}) {
     }, []);
 
     useEffect(() => {
-        if (!mapRef.current || mapInstanceRef.current) return;
-
+        if (!mapRef.current || mapInstanceRef.current) {
+            return;
+        }
         const init = async () => {
-            mapInstanceRef.current = await initMap(mapRef.current);
+            try{
+                mapInstanceRef.current = await initMap(mapRef.current);
+            }
+            catch (error) {
+                toast.error("Failed to initialize map.");
+                console.error("Error initializing map:", error);
+            }
         };
-
         init();
     }, []);
 
     useEffect(() => {
         if (!mapInstanceRef.current || !currentCity?.coord) return;
-
         const { lat, lon } = currentCity.coord;
         mapInstanceRef.current.setCenter({ lat, lng: lon });
-
     }, [currentCity]);
 
     useEffect(() => {
         if (!mapInstanceRef.current || !window.google) return;
 
-        let marker = markerRef.current;
+        let listener;
 
         const initMarker = async () => {
-            const { AdvancedMarkerElement } = await importLibrary("marker");
-            
-            const listener = mapInstanceRef.current.addListener("click", (e) => {
-                const lat = e.latLng.lat();
-                const lon = e.latLng.lng();
-
-                const position = { lat, lng: lon };
-                if (marker.current){
-                    marker.current.setPosition(position);
-                } else { 
-                    markerRef.current = new AdvancedMarkerElement({
-                        position,
-                        map: mapInstanceRef.current,
-                    });
-                }
-                onLocationSelect(lat, lon);
+            const { AdvancedMarkerElement } = await importLibrary("marker").catch(error => {
+                toast.error("Failed to initialize marker.");
+                console.error("Error initializing marker:", error);
+                return {};
             });
-            return () => listener.remove();
+            if (!AdvancedMarkerElement) return;
+            
+            listener = mapInstanceRef.current.addListener("click",(e) => {
+                    const lat = e.latLng.lat();
+                    const lon = e.latLng.lng();
+
+                    const position = { lat, lng: lon };
+
+                    if (markerRef.current) {
+                        markerRef.current.position = position;
+                    } else {
+                        const markerContent = document.createElement("div");
+                        markerContent.innerHTML = "📍";
+                        markerContent.style.fontSize = "24px";
+
+                        markerRef.current =
+                            new AdvancedMarkerElement({
+                                position,
+                                map: mapInstanceRef.current,
+                                content: markerContent,
+                            });
+                    }
+                    onLocationSelect(lat, lon);
+                }
+            );
         };
         initMarker();
+        return () => {
+            if (listener) listener.remove();
+        };
     }, [onLocationSelect]);
 
     useEffect(() => {
@@ -65,13 +85,11 @@ function MapView({onLocationSelect, currentCity}) {
 
         const map = mapInstanceRef.current;
 
-        window.google.maps.event.trigger(map, "resize");
-
         if (currentCity?.coord) {
             const { lat, lon } = currentCity.coord;
             map.setCenter({ lat, lng: lon });
         }
-    }, [isExpanded]);
+    }, [isExpanded, currentCity]);
 
     const mapHeight = isExpanded ? "h-[300px] lg:h-[400px]" : "h-[50px] lg:h-[100px]";
 
