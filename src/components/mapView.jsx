@@ -2,6 +2,7 @@ import { importLibrary } from "@googlemaps/js-api-loader";
 import { initMap } from "../services/mapAPI";
 import { useEffect, useRef, useCallback, useState } from "react";
 import { toast } from "react-hot-toast";
+import marker from "../assets/marker3.png";
 
 function MapView({onLocationSelect, currentCity}) {
 
@@ -32,7 +33,10 @@ function MapView({onLocationSelect, currentCity}) {
     }, []);
 
     useEffect(() => {
-        if (!mapInstanceRef.current || !currentCity?.coord) return;
+        if (!mapInstanceRef.current 
+            || !currentCity?.coord
+            || !window.google
+        ) return;
         const { lat, lon } = currentCity.coord;
         mapInstanceRef.current.setCenter({ lat, lng: lon });
     }, [currentCity]);
@@ -43,33 +47,11 @@ function MapView({onLocationSelect, currentCity}) {
         let listener;
 
         const initMarker = async () => {
-            const { AdvancedMarkerElement } = await importLibrary("marker").catch(error => {
-                toast.error("Failed to initialize marker.");
-                console.error("Error initializing marker:", error);
-                return {};
-            });
-            if (!AdvancedMarkerElement) return;
+            
             
             listener = mapInstanceRef.current.addListener("click",(e) => {
                     const lat = e.latLng.lat();
                     const lon = e.latLng.lng();
-
-                    const position = { lat, lng: lon };
-
-                    if (markerRef.current) {
-                        markerRef.current.position = position;
-                    } else {
-                        const markerContent = document.createElement("div");
-                        markerContent.innerHTML = "📍";
-                        markerContent.style.fontSize = "24px";
-
-                        markerRef.current =
-                            new AdvancedMarkerElement({
-                                position,
-                                map: mapInstanceRef.current,
-                                content: markerContent,
-                            });
-                    }
                     onLocationSelect(lat, lon);
                 }
             );
@@ -81,14 +63,52 @@ function MapView({onLocationSelect, currentCity}) {
     }, [onLocationSelect]);
 
     useEffect(() => {
-        if (!mapInstanceRef.current || !window.google) return;
+        if (!mapInstanceRef.current 
+            || !window.google
+            || !currentCity?.coord
+        ) return;
 
         const map = mapInstanceRef.current;
+        let cancelled = false;
 
-        if (currentCity?.coord) {
+        const updateMarker = async () => {
+            const { AdvancedMarkerElement } = await importLibrary("marker").catch(error => {
+                toast.error("Failed to initialize marker.");
+                console.error("Error initializing marker:", error);
+                return {};
+            });
+            if (!AdvancedMarkerElement) return;
+
+            if (cancelled) return;
+
             const { lat, lon } = currentCity.coord;
-            map.setCenter({ lat, lng: lon });
-        }
+            const position = { lat, lng: lon };
+            if (markerRef.current)
+                markerRef.current.position = position;
+            else {
+                const markerIcon = document.createElement("img");
+                markerIcon.src = marker;
+                markerIcon.alt = "Marker";
+                markerIcon.style.filter = "brightness(0.8) drop-shadow(0 0 2px rgba(0, 0, 0, 0.5))";
+                markerIcon.className = "w-8 h-8";
+
+                const markerContent = document.createElement("div");
+                markerContent.appendChild(markerIcon);
+
+                markerRef.current =
+                    new AdvancedMarkerElement({
+                        position,
+                        map: mapInstanceRef.current,
+                        content: markerContent,
+                    });
+            }
+            mapInstanceRef.current.panTo(position);
+        };
+
+        updateMarker();
+        return () => {
+                cancelled = true;
+            };
     }, [isExpanded, currentCity]);
 
     const mapHeight = isExpanded ? "h-[300px] lg:h-[400px]" : "h-[50px] lg:h-[100px]";

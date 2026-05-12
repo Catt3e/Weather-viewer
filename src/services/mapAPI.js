@@ -5,7 +5,6 @@ async function initMap(mapElement) {
     setOptions({
         apiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
         version: process.env.REACT_APP_GOOGLE_MAPS_API_VERSION || "weekly",
-        // mapsId: process.env.REACT_APP_GOOGLE_MAPS_API_MAP_ID || undefined,
         language: process.env.REACT_APP_GOOGLE_MAPS_API_LANGUAGE || "en",
         libraries: ["marker"]
     });
@@ -14,7 +13,7 @@ async function initMap(mapElement) {
     const { AdvancedMarkerElement } = await importLibrary("marker");
 
     const map = new Map(mapElement, {
-        center: { lat: -34.397, lng: 150.644 },
+        center: { lat: 10.823, lng: 106.629 },
         zoom: 8,
         mapId: process.env.REACT_APP_GOOGLE_MAPS_API_MAP_ID || "DEMO_MAP_ID",
     });

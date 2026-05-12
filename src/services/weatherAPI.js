@@ -29,7 +29,6 @@ async function getCurrentWeatherByCoords(lat, lon) {
         const data = await response.json();
         return data;
     } catch (error) {
-        toast.error("Failed to fetch weather data for the selected location. Please try again.");
         console.error("Error fetching current weather data by coordinates:", error);
         return;
     }

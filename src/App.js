@@ -3,7 +3,7 @@ import SearchBar from './components/searchBar';
 import CurrentWeather from './components/currentWeather';
 import Forecast from './components/forecast';
 import useWeather from './hooks/useWeather';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MapView from './components/mapView';
 import { getCityNameByCoords } from './services/weatherAPI';
 import toast, { Toaster } from 'react-hot-toast';
@@ -23,6 +23,12 @@ function App() {
   const forecastData = coordWeather.forecastData ? coordWeather.forecastData : cityWeather.forecastData;
   const loading = coordWeather.loading || cityWeather.loading;
   const error = coordWeather.error || cityWeather.error;
+
+  useEffect(() => {
+    if (!cityWeather.weatherData) return;
+    const { lat, lon } = cityWeather.weatherData.coord;
+    setCurrentCity({ coord: { lat, lon } });
+  }, [cityWeather.weatherData]);
 
   const handleSearch = (cityName) => {
     setCurrentCity(null);
@@ -54,16 +60,7 @@ function App() {
         </p>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <MapView 
-          onLocationSelect={handleLocationSelect} 
-          currentCity={currentCity}
-        />
-      </div>
-
-      {/* Main */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-
+      <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Search */}
         <div className="mb-8">
           <SearchBar onSearch={handleSearch} />
@@ -76,6 +73,17 @@ function App() {
         {error && (
           <p className="text-center text-red-400">{error}</p>
         )}
+      </div>
+      
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <MapView 
+          onLocationSelect={handleLocationSelect} 
+          currentCity={currentCity}
+        />
+      </div>
+
+      {/* Main */}
+      <main className="max-w-6xl mx-auto px-4 py-8">
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
