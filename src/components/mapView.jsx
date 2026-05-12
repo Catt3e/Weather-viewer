@@ -68,7 +68,6 @@ function MapView({onLocationSelect, currentCity}) {
             || !currentCity?.coord
         ) return;
 
-        const map = mapInstanceRef.current;
         let cancelled = false;
 
         const updateMarker = async () => {

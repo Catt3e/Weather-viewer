@@ -10,7 +10,7 @@ async function initMap(mapElement) {
     });
 
     const { Map } = await importLibrary("maps");
-    const { AdvancedMarkerElement } = await importLibrary("marker");
+    // const { AdvancedMarkerElement } = await importLibrary("marker");
 
     const map = new Map(mapElement, {
         center: { lat: 10.823, lng: 106.629 },
